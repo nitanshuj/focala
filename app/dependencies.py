@@ -10,7 +10,7 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
     """
     if not credentials:
         # For testing / unauthenticated dev fallback if needed
-        return "demo-user-id"
+        return "00000000-0000-0000-0000-000000000000"
     
     token = credentials.credentials
     user_id = verify_jwt_token(token)

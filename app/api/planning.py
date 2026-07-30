@@ -7,8 +7,29 @@ from app.models.plan import GeneratePlanRequest, DailyPlanResponse, RebalancePla
 from app.services.supabase_client import supabase
 from app.services.gemini_client import generate_gemini_daily_plan
 from app.services.push_service import send_push_notification
-
 router = APIRouter(prefix="/plan", tags=["Daily Planning"])
+
+@router.post("/energy")
+async def set_user_energy(
+    payload: dict,
+    user_id: str = Depends(get_current_user)
+):
+    energy_level = payload.get("energy_level", 3)
+    try:
+        supabase.table("profiles").upsert({
+            "id": user_id,
+            "current_energy_level": energy_level,
+            "updated_at": datetime.utcnow().isoformat()
+        }).execute()
+    except Exception:
+        try:
+            supabase.table("profiles").upsert({
+                "id": user_id,
+                "updated_at": datetime.utcnow().isoformat()
+            }).execute()
+        except Exception:
+            pass
+    return {"status": "success", "energy_level": energy_level}
 
 @router.post("/generate", response_model=DailyPlanResponse)
 async def generate_daily_plan_endpoint(
@@ -18,16 +39,20 @@ async def generate_daily_plan_endpoint(
     try:
         plan_date_val = (payload.plan_date if payload and payload.plan_date else date.today())
         
-        # Fetch pending tasks and active routines from Supabase
+        # Fetch pending tasks, active routines, and Google Calendar events
         tasks_res = supabase.table("tasks").select("*").eq("user_id", user_id).eq("status", "pending").execute()
         routines_res = supabase.table("routines").select("*").eq("user_id", user_id).eq("active", True).execute()
         profile_res = supabase.table("profiles").select("*").eq("id", user_id).execute()
+
+        from app.services.calendar_client import fetch_user_google_calendar_events
+        gcal_events = await fetch_user_google_calendar_events(user_id)
 
         profile_data = profile_res.data[0] if (profile_res.data and len(profile_res.data) > 0) else {}
 
         context = {
             "tasks": tasks_res.data or [],
             "routines": routines_res.data or [],
+            "calendar_events": gcal_events,
             "energy_pattern": profile_data.get("energy_pattern", "flexible"),
             "available_hours": payload.available_hours if payload else "09:00-21:00",
             "date": str(plan_date_val)

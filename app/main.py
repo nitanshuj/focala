@@ -20,9 +20,9 @@ async def lifespan(app: FastAPI):
         print(f"Scheduler shutdown error: {e}")
 
 app = FastAPI(
-    title="FocusFlow API — ADHD Planner Backend",
+    title="FoCala API — ADHD Planner Backend",
     version="1.0.0",
-    description="FastAPI backend for FocusFlow ADHD planner PWA",
+    description="FastAPI backend for FoCala ADHD planner PWA",
     lifespan=lifespan
 )
 
@@ -39,7 +39,7 @@ app.include_router(api_router, prefix="/api")
 @app.get("/", tags=["Health"])
 async def root():
     return {
-        "name": "FocusFlow API",
+        "name": "FoCala API",
         "status": "online",
         "version": "1.0.0",
         "docs": "/docs"

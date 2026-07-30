@@ -1,8 +1,4 @@
-# Technical Implementation Plan & Architecture Specification
-
----
-
-## 1. System Architecture Overview
+# System Architecture Overview
 
 The system operates on a hybrid client-server architecture:
 - **Frontend Layer**: PWA built with React, Vite (`vite-plugin-pwa`), and Tailwind CSS. Service Workers handle offline caching, push listening, and notification interactions.
@@ -45,14 +41,3 @@ The system operates on a hybrid client-server architecture:
 │          mood_logs, focus_sessions                      │
 └─────────────────────────────────────────────────────────┘
 ```
-
-## 5. Background Jobs & Push Engine
-
-### 5.1 APScheduler (`app/scheduler/daily_planner.py`)
-- **Daily 7:00 AM Job**: Calls `generate_daily_plan()` for active users and sends schedule push notification.
-- **5-Minute Transition Nudges**: Checks upcoming schedule blocks and sends gentle reminder alerts.
-- **Evening 8:00 PM Check-in**: Prompts user for brief mood/energy check-in.
-
-### 5.2 Push Notification Engine (`app/services/push_service.py`)
-- Uses `pywebpush` with VAPID key pairs.
-- Automatically handles HTTP `410 Gone` expired subscriptions by pruning invalid endpoints from the database.

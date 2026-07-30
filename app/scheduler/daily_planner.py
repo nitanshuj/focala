@@ -5,7 +5,8 @@ from apscheduler.triggers.cron import CronTrigger
 
 from app.services.supabase_client import supabase
 from app.services.gemini_client import generate_gemini_daily_plan
-from app.services.push_service import send_push_notification
+# Push notification service commented out for now
+# from app.services.push_service import send_push_notification
 
 logger = logging.getLogger(__name__)
 
@@ -42,12 +43,13 @@ async def daily_planning_job():
                     "raw_gemini_response": str(plan)
                 }, on_conflict="user_id,plan_date").execute()
 
-                await send_push_notification(
-                    user_id=user_id,
-                    title="📅 Good morning! Your schedule is ready",
-                    body=plan.get("daily_focus", "Tap to view today's tasks & routines."),
-                    url="/today"
-                )
+                # Push notifications disabled for now
+                # await send_push_notification(
+                #     user_id=user_id,
+                #     title="📅 Good morning! Your schedule is ready",
+                #     body=plan.get("daily_focus", "Tap to view today's tasks & routines."),
+                #     url="/today"
+                # )
             except Exception as ex:
                 logger.error(f"Daily planning failed for user {user_id}: {ex}")
     except Exception as e:
@@ -56,9 +58,9 @@ async def daily_planning_job():
 @scheduler.scheduled_job(CronTrigger(minute="*/5"))
 async def transition_reminders():
     """
-    Checks upcoming focus time blocks every 5 minutes and sends push warnings.
+    Checks upcoming focus time blocks every 5 minutes and sends warnings.
     """
-    # Placeholder for checking scheduled time blocks and sending 5-min warnings
+    # Push notifications disabled for now
     pass
 
 @scheduler.scheduled_job(CronTrigger(hour=20, minute=0))
@@ -70,11 +72,13 @@ async def evening_checkin():
         res = supabase.table("profiles").select("id").execute()
         users = res.data or []
         for user in users:
-            await send_push_notification(
-                user_id=user["id"],
-                title="🌙 Evening Reflection",
-                body="How was your energy today? Take 10 seconds for a quick check-in.",
-                url="/mood"
-            )
+            # Push notifications disabled for now
+            # await send_push_notification(
+            #     user_id=user["id"],
+            #     title="🌙 Evening Reflection",
+            #     body="How was your energy today? Take 10 seconds for a quick check-in.",
+            #     url="/mood"
+            # )
+            pass
     except Exception as e:
         logger.error(f"Evening checkin notification error: {e}")

@@ -10,7 +10,42 @@ logger = logging.getLogger(__name__)
 if settings.GEMINI_API_KEY:
     genai.configure(api_key=settings.GEMINI_API_KEY)
 
-MODEL_NAME = "gemini-2.0-flash"
+def get_model_name() -> str:
+    return settings.GEMINI_MODEL_NAME
+
+def get_backup_model_name() -> str:
+    return settings.GEMINI_BACKUP_MODEL_NAME
+
+def generate_content_with_fallback(prompt: str) -> str:
+    """
+    Attempts to generate content using primary model GEMINI_MODEL_NAME.
+    If it fails, falls back to GEMINI_BACKUP_MODEL_NAME.
+    """
+    models_to_try = [
+        settings.GEMINI_MODEL_NAME,
+        settings.GEMINI_BACKUP_MODEL_NAME
+    ]
+    
+    # Remove empty or duplicate model names
+    seen = set()
+    models = []
+    for m in models_to_try:
+        if m and m not in seen:
+            seen.add(m)
+            models.append(m)
+
+    last_error = None
+    for model_name in models:
+        try:
+            logger.info(f"Generating content with Gemini model: {model_name}")
+            model = genai.GenerativeModel(model_name)
+            response = model.generate_content(prompt)
+            return response.text.strip()
+        except Exception as e:
+            logger.warning(f"Gemini request failed using model '{model_name}': {e}. Retrying with fallback model...")
+            last_error = e
+
+    raise last_error or RuntimeError("All configured Gemini models failed.")
 
 DAILY_PLANNER_PROMPT = """
 You are an ADHD-friendly daily planner assistant. Given the user's tasks, routines, and available time windows, create an optimized daily schedule.
@@ -83,10 +118,9 @@ Return strictly valid JSON:
 
 async def generate_gemini_daily_plan(context: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Calls Gemini API to generate ADHD daily schedule.
+    Calls Gemini API to generate ADHD daily schedule with fallback model support.
     """
     if not settings.GEMINI_API_KEY:
-        # Fallback dummy plan when key is not configured
         return {
             "schedule": [
                 {
@@ -120,10 +154,8 @@ async def generate_gemini_daily_plan(context: Dict[str, Any]) -> Dict[str, Any]:
         }
 
     try:
-        model = genai.GenerativeModel(MODEL_NAME)
         prompt = f"{DAILY_PLANNER_PROMPT}\n\nUser Context:\n{json.dumps(context, default=str)}"
-        response = model.generate_content(prompt)
-        text = response.text.strip()
+        text = generate_content_with_fallback(prompt)
         if text.startswith("```json"):
             text = text[7:].rstrip("` \n")
         elif text.startswith("```"):
@@ -136,7 +168,7 @@ async def generate_gemini_daily_plan(context: Dict[str, Any]) -> Dict[str, Any]:
 
 async def breakdown_task_with_gemini(task_title: str, task_description: str = "") -> List[Dict[str, Any]]:
     """
-    Breaks down a task into micro-steps using Gemini.
+    Breaks down a task into micro-steps using Gemini with fallback model support.
     """
     if not settings.GEMINI_API_KEY:
         return [
@@ -146,10 +178,8 @@ async def breakdown_task_with_gemini(task_title: str, task_description: str = ""
         ]
 
     try:
-        model = genai.GenerativeModel(MODEL_NAME)
         prompt = BREAKDOWN_PROMPT.format(task_title=task_title, task_description=task_description or "None")
-        response = model.generate_content(prompt)
-        text = response.text.strip()
+        text = generate_content_with_fallback(prompt)
         if text.startswith("```json"):
             text = text[7:].rstrip("` \n")
         elif text.startswith("```"):
@@ -165,7 +195,7 @@ async def breakdown_task_with_gemini(task_title: str, task_description: str = ""
 
 async def triage_brain_dump_with_gemini(content: str) -> List[Dict[str, Any]]:
     """
-    Triages raw brain dump into tasks using Gemini.
+    Triages raw brain dump into tasks using Gemini with fallback model support.
     """
     if not settings.GEMINI_API_KEY:
         return [
@@ -179,10 +209,8 @@ async def triage_brain_dump_with_gemini(content: str) -> List[Dict[str, Any]]:
         ]
 
     try:
-        model = genai.GenerativeModel(MODEL_NAME)
         prompt = TRIAGE_PROMPT.format(brain_dump_content=content)
-        response = model.generate_content(prompt)
-        text = response.text.strip()
+        text = generate_content_with_fallback(prompt)
         if text.startswith("```json"):
             text = text[7:].rstrip("` \n")
         elif text.startswith("```"):

@@ -57,6 +57,16 @@ async def update_task(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update task: {str(e)}")
 
+@router.delete("/completed", status_code=status.HTTP_204_NO_CONTENT)
+async def clear_completed_tasks(
+    user_id: str = Depends(get_current_user)
+):
+    try:
+        supabase.table("tasks").delete().eq("user_id", user_id).eq("status", "done").execute()
+        return None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to clear completed tasks: {str(e)}")
+
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(
     task_id: str,
@@ -67,6 +77,23 @@ async def delete_task(
         return None
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete task: {str(e)}")
+
+@router.post("/breakdown")
+async def breakdown_task_standalone(
+    payload: dict,
+    user_id: str = Depends(get_current_user)
+):
+    try:
+        title = payload.get("title", "")
+        description = payload.get("description", "")
+        micro_steps_data = await breakdown_task_with_gemini(
+            task_title=title,
+            task_description=description
+        )
+        steps = [step.get("title", "") for step in micro_steps_data if step.get("title")]
+        return {"steps": steps}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to breakdown task: {str(e)}")
 
 @router.post("/{task_id}/breakdown", response_model=TaskBreakdownResponse)
 async def breakdown_task(

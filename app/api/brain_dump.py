@@ -37,6 +37,7 @@ async def create_brain_dump(
         raise HTTPException(status_code=500, detail=f"Failed to create brain dump: {str(e)}")
 
 @router.post("/{dump_id}/triage")
+@router.post("/{dump_id}/convert")
 async def triage_brain_dump(
     dump_id: str,
     user_id: str = Depends(get_current_user)

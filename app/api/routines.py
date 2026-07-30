@@ -50,7 +50,19 @@ async def update_routine(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to update routine: {str(e)}")
 
+@router.delete("/{routine_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_routine(
+    routine_id: str,
+    user_id: str = Depends(get_current_user)
+):
+    try:
+        supabase.table("routines").delete().eq("id", routine_id).eq("user_id", user_id).execute()
+        return None
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete routine: {str(e)}")
+
 @router.post("/{routine_id}/complete", response_model=RoutineCompletionResponse)
+@router.post("/{routine_id}/completions", response_model=RoutineCompletionResponse)
 async def complete_routine_steps(
     routine_id: str,
     payload: RoutineCompletionRequest,

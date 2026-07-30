@@ -1,13 +1,13 @@
-# FocusFlow — How the App Helps Your Brain Get Things Done
+# FoCala — How the App Helps Your Brain Get Things Done
 
-Welcome! This document explains in simple, plain language how the **FocusFlow backend system** works to support anyone dealing with ADHD, working memory challenges, executive dysfunction, or daily task overwhelm.
+Welcome! This document explains in simple, plain language how the **FoCala backend system** works to support anyone dealing with ADHD, working memory challenges, executive dysfunction, or daily task overwhelm.
 
 ---
 
 ## 🌟 The Core Mission
 Standard to-do list apps often fail ADHD brains because endless lists feel overwhelming, time is hard to estimate, and starting a big project causes freeze mode. 
 
-FocusFlow acts as a **smart digital assistant (your external second brain)**. It breaks down big scary tasks into tiny steps, organizes your day automatically, sends non-guilty reminders, and rewards your daily progress.
+FoCala acts as a **smart digital assistant (your external second brain)**. It breaks down big scary tasks into tiny steps, organizes your day automatically, sends non-guilty reminders, and rewards your daily progress.
 
 ---
 
@@ -33,7 +33,7 @@ FocusFlow acts as a **smart digital assistant (your external second brain)**. It
 - **Why it helps:** Keeps unfinished items from slipping through the cracks and removes the shame of having uncompleted tasks from yesterday.
 
 ### 5. Reverse To-Do List & Micro-Rewards (Dopamine Booster) 🏆
-- **How it works:** Instead of staring at a scary long list of remaining tasks, FocusFlow tracks your **Done List**. The moment you complete a task or micro-step, you get instant rewards, streak progress, and positive visual feedback.
+- **How it works:** Instead of staring at a scary long list of remaining tasks, FoCala tracks your **Done List**. The moment you complete a task or micro-step, you get instant rewards, streak progress, and positive visual feedback.
 - **Why it helps:** Gives your brain instant positive feedback (dopamine) every time you take action.
 
 ### 6. Body Doubling & Virtual Focus Rooms 👥
@@ -64,4 +64,4 @@ FocusFlow acts as a **smart digital assistant (your external second brain)**. It
 ---
 
 ## 💚 Design Philosophy
-FocusFlow is built with **zero shame, maximum flexibility, and low cognitive load**. Everything is designed to make taking action feel easy, encouraging, and supportive!
+FoCala is built with **zero shame, maximum flexibility, and low cognitive load**. Everything is designed to make taking action feel easy, encouraging, and supportive!

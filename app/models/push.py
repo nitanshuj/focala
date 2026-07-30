@@ -16,5 +16,5 @@ class PushSubscribeResponse(BaseModel):
 
 class PushTestNotification(BaseModel):
     title: str = "Test Notification"
-    body: str = "This is a test notification from FocusFlow!"
+    body: str = "This is a test notification from FoCala!"
     url: str = "/today"

@@ -242,4 +242,22 @@ create policy "Users can update own mood logs" on public.mood_logs
   for update using (auth.uid() = user_id);
 create policy "Users can delete own mood logs" on public.mood_logs
   for delete using (auth.uid() = user_id);
+
+--------------------------------------------------------------------------------
+-- 9. CALENDAR_CONNECTIONS TABLE (Google Calendar OAuth tokens)
+--------------------------------------------------------------------------------
+create table if not exists public.calendar_connections (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade unique not null,
+  google_email text not null,
+  access_token text not null,
+  refresh_token text not null,
+  token_expiry timestamptz not null,
+  connected_at timestamptz default now()
+);
+
+-- CALENDAR CONNECTIONS RLS
+alter table public.calendar_connections enable row level security;
+create policy "Users manage own calendar connection" on public.calendar_connections
+  for all using (auth.uid() = user_id);
 ```

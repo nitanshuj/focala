@@ -9,6 +9,8 @@ class Settings:
     SUPABASE_ANON_KEY: str = os.getenv("SUPABASE_ANON_KEY", "")
     
     GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
+    GEMINI_MODEL_NAME: str = os.getenv("GEMINI_MODEL_NAME", "")
+    GEMINI_BACKUP_MODEL_NAME: str = os.getenv("GEMINI_BACKUP_MODEL_NAME", "")
     
     VAPID_PRIVATE_KEY: str = os.getenv("VAPID_PRIVATE_KEY", "")
     VAPID_PUBLIC_KEY: str = os.getenv("VAPID_PUBLIC_KEY", "")
