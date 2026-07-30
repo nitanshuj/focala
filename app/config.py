@@ -24,10 +24,13 @@ class Settings:
 
     # Security: production frontend origin used for CORS and OAuth redirects.
     # Comma-separated list, e.g. "https://focala.netlify.app,https://www.focala.app"
-    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "http://localhost:8080")
+    FRONTEND_URL: str = os.getenv("FRONTEND_URL", "https://focala.netlify.app")
     ALLOWED_ORIGINS: list[str] = [
         o.strip()
-        for o in os.getenv("ALLOWED_ORIGINS", "http://localhost:8080,http://localhost:5173").split(",")
+        for o in os.getenv(
+            "ALLOWED_ORIGINS",
+            "https://focala.netlify.app,http://localhost:8080,http://localhost:5173",
+        ).split(",")
         if o.strip()
     ]
 
