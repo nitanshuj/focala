@@ -27,12 +27,12 @@ async def log_focus_session(
         }
         res = supabase.table("focus_sessions").insert(record).execute()
 
-        # If a task was linked, update its actual_minutes
+        # M1 Fix: filter by user_id on both SELECT and UPDATE to enforce ownership
         if payload.task_id:
-            task_res = supabase.table("tasks").select("actual_minutes").eq("id", payload.task_id).execute()
+            task_res = supabase.table("tasks").select("actual_minutes").eq("id", payload.task_id).eq("user_id", user_id).execute()
             if task_res.data and len(task_res.data) > 0:
                 current_min = task_res.data[0].get("actual_minutes") or 0
-                supabase.table("tasks").update({"actual_minutes": current_min + payload.duration_minutes}).eq("id", payload.task_id).execute()
+                supabase.table("tasks").update({"actual_minutes": current_min + payload.duration_minutes}).eq("id", payload.task_id).eq("user_id", user_id).execute()
 
         return {
             "status": "completed",

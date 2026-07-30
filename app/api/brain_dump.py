@@ -67,8 +67,8 @@ async def triage_brain_dump(
             if task_res.data:
                 created_tasks.append(task_res.data[0])
 
-        # Mark brain dump entry as triaged
-        supabase.table("brain_dumps").update({"triaged": True}).eq("id", dump_id).execute()
+        # M2 Fix: include user_id filter so only the owner can mark their dump as triaged
+        supabase.table("brain_dumps").update({"triaged": True}).eq("id", dump_id).eq("user_id", user_id).execute()
 
         return {
             "message": "Brain dump successfully triaged into tasks",

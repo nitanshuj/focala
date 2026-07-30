@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import date, datetime
 
@@ -31,3 +31,8 @@ class RebalancePlanRequest(BaseModel):
     current_time: str  # "14:30"
     completed_task_ids: List[str] = []
     energy_level: str = "medium"
+
+# M3 Fix: typed model for /plan/energy replacing raw dict payload
+class EnergyUpdateRequest(BaseModel):
+    energy_level: int = Field(..., ge=1, le=5, description="User energy level from 1 (exhausted) to 5 (high energy)")
+

@@ -4,9 +4,17 @@ from contextlib import asynccontextmanager
 
 from app.api.router import api_router
 from app.scheduler.daily_planner import scheduler
+from app.config import settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # M5 Fix: validate required secrets at startup — fail fast rather than run insecurely
+    if not settings.DEBUG and not settings.JWT_SECRET:
+        raise RuntimeError(
+            "JWT_SECRET environment variable is required in production. "
+            "Set it in your Render dashboard and redeploy."
+        )
+
     # Startup: Start APScheduler background scheduler
     try:
         scheduler.start()
@@ -26,12 +34,15 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+# H1 Fix: lock CORS to the configured frontend origin(s) only.
+# Set ALLOWED_ORIGINS in your environment, e.g.:
+#   ALLOWED_ORIGINS=https://focala.netlify.app,https://www.focala.app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configurable for PWA domain in production
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
 app.include_router(api_router, prefix="/api")

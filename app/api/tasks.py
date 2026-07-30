@@ -4,7 +4,7 @@ from datetime import datetime
 import uuid
 
 from app.dependencies import get_current_user
-from app.models.task import TaskCreate, TaskUpdate, TaskResponse, TaskBreakdownResponse, TaskSummaryResponse
+from app.models.task import TaskCreate, TaskUpdate, TaskResponse, TaskBreakdownResponse, TaskSummaryResponse, TaskBreakdownRequest
 from app.services.supabase_client import supabase
 from app.services.gemini_client import breakdown_task_with_gemini
 
@@ -80,15 +80,14 @@ async def delete_task(
 
 @router.post("/breakdown")
 async def breakdown_task_standalone(
-    payload: dict,
+    payload: TaskBreakdownRequest,
     user_id: str = Depends(get_current_user)
 ):
+    # M3 Fix: payload is now validated by Pydantic — no raw dict
     try:
-        title = payload.get("title", "")
-        description = payload.get("description", "")
         micro_steps_data = await breakdown_task_with_gemini(
-            task_title=title,
-            task_description=description
+            task_title=payload.title,
+            task_description=payload.description or ""
         )
         steps = [step.get("title", "") for step in micro_steps_data if step.get("title")]
         return {"steps": steps}

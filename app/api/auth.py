@@ -57,8 +57,9 @@ async def signup(payload: SignUpRequest):
     except Exception as e:
         err_msg = str(e)
         logger.error(f"Signup error: {err_msg}")
-        
-        if "placeholder" in settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
+
+        # H5 Fix: dev fallback only in DEBUG mode — never silently succeed in production
+        if settings.DEBUG and ("placeholder" in settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY):
             dev_id = f"user-{uuid.uuid4().hex[:8]}"
             name = payload.display_name or payload.email.split("@")[0]
             return AuthResponse(
@@ -71,7 +72,7 @@ async def signup(payload: SignUpRequest):
                     createdAt=datetime.utcnow().isoformat()
                 )
             )
-            
+
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Sign up failed: {err_msg}"
@@ -120,8 +121,9 @@ async def login(payload: LoginRequest):
     except Exception as e:
         err_msg = str(e)
         logger.error(f"Login error: {err_msg}")
-        
-        if "placeholder" in settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY:
+
+        # H5 Fix: dev fallback only in DEBUG mode — never silently succeed in production
+        if settings.DEBUG and ("placeholder" in settings.SUPABASE_URL or not settings.SUPABASE_SERVICE_KEY):
             dev_id = "00000000-0000-0000-0000-000000000000"
             name = payload.email.split("@")[0]
             return AuthResponse(

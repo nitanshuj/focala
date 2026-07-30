@@ -1,8 +1,10 @@
+import html as html_lib
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import RedirectResponse
 from typing import Optional, List
 
 from app.dependencies import get_current_user
+from app.config import settings
 from app.models.calendar_connection import (
     CalendarConnectionStatus,
     CalendarSyncResponse,
@@ -51,14 +53,22 @@ async def calendar_callback(
     try:
         target_user_id = state or "00000000-0000-0000-0000-000000000000"
         result = await exchange_code_and_store_tokens(code, target_user_id)
-        
-        # HTML redirect script that sends user back to FoCala frontend settings
+
+        # H2 Fix: escape google_email before embedding in HTML to prevent XSS
+        safe_email = html_lib.escape(result.get("google_email", ""))
+
+        # H4 Fix: use FRONTEND_URL from settings instead of hardcoded localhost
+        frontend_settings_url = f"{settings.FRONTEND_URL}/settings?calendar_connected=true"
+
+        # H3 Fix: postMessage target origin locked to FRONTEND_URL (not "*")
+        frontend_origin = settings.FRONTEND_URL
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
         <head>
             <title>Google Calendar Connected</title>
-            <meta http-equiv="refresh" content="2;url=http://localhost:8080/settings?calendar_connected=true" />
+            <meta http-equiv="refresh" content="2;url={frontend_settings_url}" />
             <style>
                 body {{ font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #090d16; color: #fff; text-align: center; }}
                 .card {{ background: #131b2e; padding: 2rem; border-radius: 1rem; border: 1px solid #1e293b; max-width: 400px; }}
@@ -68,16 +78,20 @@ async def calendar_callback(
         </head>
         <body>
             <div class="card">
-                <div class="badge">✓ Connected to Google Calendar</div>
+                <div class="badge">&#10003; Connected to Google Calendar</div>
                 <h2>Success!</h2>
-                <p>Account <strong>{result.get('google_email', '')}</strong> has been linked to FoCala.</p>
+                <p>Account <strong>{safe_email}</strong> has been linked to FoCala.</p>
                 <p style="font-size: 0.875rem; color: #94a3b8;">Redirecting back to FoCala settings...</p>
-                <a href="http://localhost:8080/settings?calendar_connected=true">Click here if not redirected automatically</a>
+                <a href="{frontend_settings_url}">Click here if not redirected automatically</a>
             </div>
             <script>
                 if (window.opener) {{
-                    window.opener.postMessage({{"type": "GOOGLE_CALENDAR_CONNECTED", "email": "{result.get('google_email', '')}"}}, "*");
+                    window.opener.postMessage(
+                        {{"type": "GOOGLE_CALENDAR_CONNECTED", "email": "{safe_email}"}},
+                        "{frontend_origin}"
+                    );
                 }}
+                setTimeout(function() {{ window.close(); }}, 3000);
             </script>
         </body>
         </html>

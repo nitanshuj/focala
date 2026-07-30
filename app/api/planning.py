@@ -3,7 +3,7 @@ from datetime import date, datetime
 from typing import Optional
 
 from app.dependencies import get_current_user
-from app.models.plan import GeneratePlanRequest, DailyPlanResponse, RebalancePlanRequest
+from app.models.plan import GeneratePlanRequest, DailyPlanResponse, RebalancePlanRequest, EnergyUpdateRequest
 from app.services.supabase_client import supabase
 from app.services.gemini_client import generate_gemini_daily_plan
 from app.services.push_service import send_push_notification
@@ -11,14 +11,14 @@ router = APIRouter(prefix="/plan", tags=["Daily Planning"])
 
 @router.post("/energy")
 async def set_user_energy(
-    payload: dict,
+    payload: EnergyUpdateRequest,
     user_id: str = Depends(get_current_user)
 ):
-    energy_level = payload.get("energy_level", 3)
+    # M3 Fix: energy_level is now a validated int (1-5) via Pydantic, not a raw dict
     try:
         supabase.table("profiles").upsert({
             "id": user_id,
-            "current_energy_level": energy_level,
+            "current_energy_level": payload.energy_level,
             "updated_at": datetime.utcnow().isoformat()
         }).execute()
     except Exception:
@@ -29,7 +29,7 @@ async def set_user_energy(
             }).execute()
         except Exception:
             pass
-    return {"status": "success", "energy_level": energy_level}
+    return {"status": "success", "energy_level": payload.energy_level}
 
 @router.post("/generate", response_model=DailyPlanResponse)
 async def generate_daily_plan_endpoint(

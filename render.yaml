@@ -23,4 +23,13 @@ services:
         sync: false
       - key: JWT_SECRET
         sync: false
-    plan: starter
+      # Security: set to your production Netlify URL (no trailing slash)
+      - key: FRONTEND_URL
+        sync: false
+      # Security: comma-separated list of allowed CORS origins
+      - key: ALLOWED_ORIGINS
+        sync: false
+      # IMPORTANT: Do NOT set DEBUG=true in production. Omit this variable entirely.
+      # - key: DEBUG
+      #   value: "false"
+    plan: starter

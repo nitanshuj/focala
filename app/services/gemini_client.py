@@ -37,15 +37,23 @@ def generate_content_with_fallback(prompt: str) -> str:
     last_error = None
     for model_name in models:
         try:
-            logger.info(f"Generating content with Gemini model: {model_name}")
+            logger.debug(f"Generating content with Gemini model: {model_name}")
             model = genai.GenerativeModel(model_name)
             response = model.generate_content(prompt)
             return response.text.strip()
         except Exception as e:
-            logger.warning(f"Gemini request failed using model '{model_name}': {e}. Retrying with fallback model...")
+            # M4 Fix: sanitize error string before logging to prevent leaking API key details
+            safe_err = _sanitize_error(str(e))
+            logger.warning(f"Gemini request failed (model: {model_name}): {safe_err}. Trying fallback...")
             last_error = e
 
     raise last_error or RuntimeError("All configured Gemini models failed.")
+
+
+def _sanitize_error(err: str) -> str:
+    """Truncate and redact potentially sensitive strings from external API error messages."""
+    redacted = err.replace(settings.GEMINI_API_KEY, "[REDACTED]") if settings.GEMINI_API_KEY else err
+    return redacted[:300]  # cap length to avoid log bloat
 
 DAILY_PLANNER_PROMPT = """
 You are an ADHD-friendly daily planner assistant. Given the user's tasks, routines, and available time windows, create an optimized daily schedule.

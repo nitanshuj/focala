@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 
@@ -59,7 +59,7 @@ class TaskSummaryResponse(BaseModel):
     completed_tasks: List[TaskResponse]
 
 class BrainDumpCreate(BaseModel):
-    content: str
+    content: str = Field(..., min_length=1, max_length=10_000)
 
 class BrainDumpResponse(BaseModel):
     id: str
@@ -69,3 +69,7 @@ class BrainDumpResponse(BaseModel):
     converted_task_id: Optional[str] = None
     created_at: datetime
 
+# M3 Fix: typed request model for the standalone /tasks/breakdown endpoint
+class TaskBreakdownRequest(BaseModel):
+    title: str = Field(..., min_length=1, max_length=500)
+    description: Optional[str] = Field(None, max_length=2000)

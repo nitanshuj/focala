@@ -42,12 +42,18 @@ async def update_settings(
 
 @router.get("/export")
 async def export_user_data(user_id: str = Depends(get_current_user)):
+    """
+    Exports all of the authenticated user's data.
+    M6 Fix: each table is capped at 1000 rows to prevent unbounded memory usage.
+    For large datasets, implement cursor-based pagination.
+    """
     try:
-        tasks = supabase.table("tasks").select("*").eq("user_id", user_id).execute().data or []
-        routines = supabase.table("routines").select("*").eq("user_id", user_id).execute().data or []
-        moods = supabase.table("mood_logs").select("*").eq("user_id", user_id).execute().data or []
-        brain_dumps = supabase.table("brain_dumps").select("*").eq("user_id", user_id).execute().data or []
-        plans = supabase.table("daily_plans").select("*").eq("user_id", user_id).execute().data or []
+        PAGE = 1000  # safety cap per table
+        tasks = supabase.table("tasks").select("*").eq("user_id", user_id).limit(PAGE).execute().data or []
+        routines = supabase.table("routines").select("*").eq("user_id", user_id).limit(PAGE).execute().data or []
+        moods = supabase.table("mood_logs").select("*").eq("user_id", user_id).limit(PAGE).execute().data or []
+        brain_dumps = supabase.table("brain_dumps").select("*").eq("user_id", user_id).limit(PAGE).execute().data or []
+        plans = supabase.table("daily_plans").select("*").eq("user_id", user_id).limit(PAGE).execute().data or []
         return {
             "tasks": tasks,
             "routines": routines,
